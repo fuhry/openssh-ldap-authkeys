@@ -13,7 +13,7 @@ def cache_valid_for_user(user, lifetime, dir):
         cache_stat = os.stat(cache_file)
         now = int(time())
         
-        if now + lifetime >= cache_stat.st_mtime:
+        if cache_stat.st_mtime + lifetime >= now:
             with open(cache_file, 'r') as f:
                 return True
     except Exception as e:
