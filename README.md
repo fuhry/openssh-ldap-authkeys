@@ -40,7 +40,7 @@ Run `python3 setup.py build`, then as root/sudo `python3 setup.py install`.
 1. Create a user for `openssh-ldap-authkeys`: `useradd -s /bin/false -d /dev/null -r olak`
 1. Rename the files in `/etc/openssh-ldap-authkeys`, removing the `.example` suffix. Make these files owned by
    `root:olak`, group-readable and with no world permissions (mode `0640`).
-1. Edit these files to your needs. See the sections for [`olak.yml`](#olak-yml) and [`authmap`](#authmap) below.
+1. Edit these files to your needs. See the sections for [`olak.yml`](#olakyml) and [`authmap`](#authmap) below.
 1. To get caching working, copy the file `openssh-ldap-authkeys.tmpfiles` into `/usr/lib/tmpfiles.d`, then run (as root)
    `/usr/bin/systemd-tmpfiles --create`. This will create the directory `/var/run/ldap/ssh-cache`, owned by user `olak`
    and group `olak` with mode `0700`. If you aren't using `systemd-tmpfiles` or a similar temporary file manager, you'll
@@ -222,6 +222,7 @@ The following conventions are observed:
   LDAP entity to log in as ANY local user.
 * `~self` is a special keyword that translates to the name of the local user being logged into. Use it in the right-hand
   column to allow a user whose LDAP username matches the local username to log into that local account.
+* An LDAP username may be suffixed with `@REALM` to search an alternate base DN.
 
 ### `authmap` common usage examples
 
