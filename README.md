@@ -193,6 +193,20 @@ down.
 
 _Default: 900 seconds (15 minutes)_
 
+### `cache.dir` _(string)_
+
+Directory where SSH keys will be cached. Must be writable only by the user running OLAK (set by the
+`AuthorizedKeysCommandUser` directive in `sshd_config`).
+
+_Default:_ `/var/run/ldap/ssh-cache`
+
+### `cache.allow_stale_cache_on_failure` _(boolean)_
+
+Allow a stale cache file to be used if any exception occurs when trying to get authorized keys from LDAP. This does pose
+a small security risk, but is recommended to be left on in the event that your LDAP server is unreachable.
+
+_Default: true_
+
 ### `output.username_env_var` _(string)_
 
 Environment variable that will be populated with the user's LDAP username. If they are coming from a realm other than

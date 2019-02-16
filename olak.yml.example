@@ -20,6 +20,7 @@ ldap:
 cache:
   lifetime: 900
   dir: /var/run/ldap/ssh-cache
+  allow_stale_cache_on_failure: true
 output:
   # Environment variable the username will be stored in.
   username_env_var: OLAK_USER
