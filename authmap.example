@@ -1,0 +1,8 @@
+# Allow people in the "rtp" LDAP group to log into this system as root.
+root:&rtp
+
+# Any user in the local group called "diag" can be logged into by the user "dan".
+&diag:john
+
+# Users in the LDAP group called "shellac" can log into the local account "shell".
+shell:&shellusers

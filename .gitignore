@@ -1,0 +1,6 @@
+olak.yml
+__pycache__/
+authmap
+/build/
+/dist/
+/*.egg-info/

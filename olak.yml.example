@@ -1,0 +1,27 @@
+ldap:
+  basedn: dc=example,dc=com
+  default_realm: EXAMPLE.COM
+  use_dns_srv: true
+  server_uri: ldaps://ldap.example.com/
+  authdn: "cn=openssh,ou=Service Accounts,dc=example,dc=com"
+  authpw: example123
+  timeout: 15
+  filters:
+    # Filter to match users
+    user: (&(objectClass=posixAccount)(sshPublicKey=*))
+    # Filter to match groups
+    group: (objectClass=posixGroup)
+  group_membership: uid
+  attributes:
+    username: uid
+    ssh_key: sshPublicKey
+    group_name: cn
+    group_member: memberUid
+cache:
+  lifetime: 900
+  dir: /var/run/ldap/ssh-cache
+output:
+  # Environment variable the username will be stored in.
+  username_env_var: OLAK_USER
+logging:
+  to_stderr: false

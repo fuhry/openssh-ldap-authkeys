@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from ldapauthkeys import olak_main
+import sys
+
+olak_main(sys.argv)
