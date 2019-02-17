@@ -28,6 +28,7 @@ substitutions `%u`, `%t` and `%k` in an `AuthorizedKeysCommand`.
 
 Dependency installation one-liners for popular distros:
 
+* Fedora (dnf): `dnf install python3-dns python3-ldap python3-yaml`
 * Arch Linux (pacman): `pacman -S python-dns python-ldap python-yaml`
 * Debian/Ubuntu (apt): `apt-get install -y python3-dns python3-ldap python3-yaml`
 
