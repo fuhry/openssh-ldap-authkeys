@@ -10,8 +10,8 @@ setup(
     scripts=['openssh-ldap-authkeys'],
     install_requires=[
         'dnspython>=1.0.0',
-        'ldap>=3.0.0',
-        'yaml>=3.0',
+        'python-ldap>=3.0.0',
+        'PyYAML>=3.0',
     ],
     author='Dan Fuhry',
     author_email='dan@fuhry.com',
