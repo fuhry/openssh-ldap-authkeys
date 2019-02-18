@@ -1,0 +1,45 @@
+Source: openssh-ldap-authkeys
+Section: net
+Priority: optional
+Maintainer: Dan Fuhry <dan@fuhry.com>
+Build-Depends: debhelper (>= 10), dh-python, python3-all, python3-setuptools, python3-dnspython, python3-ldap, python3-yaml
+Standards-Version: 4.1.2
+Homepage: https://github.com/fuhry/openssh-ldap-authkeys
+#X-Python-Version: >= 2.6
+X-Python3-Version: >= 3.2
+#Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/openssh-ldap-authkeys.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/openssh-ldap-authkeys.git/
+#Testsuite: autopkgtest-pkg-python
+
+#Package: python-openssh-ldap-authkeys
+#Architecture: all
+#Depends: ${python:Depends}, ${misc:Depends}
+#Suggests: python-openssh-ldap-authkeys-doc
+#Description: <insert up to 60 chars description> (Python 2)
+# <insert long description, indented with spaces>
+# .
+# This package installs the library for Python 2.
+
+Package: python3-openssh-ldap-authkeys
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Suggests: python-openssh-ldap-authkeys-doc
+Description: Fetch SSH keys from LDAP service (Python 3)
+ openssh-ldap-authkeys is a flexible mapping script that reaches out to
+ a configured LDAP server and retrieves SSH keys from that server for
+ login authorization to local accounts. It supports complex mapping rules
+ to meet the flexiblity requirements of large organizations with complex
+ access-control requirements.
+
+Package: python-openssh-ldap-authkeys-doc
+Architecture: all
+Section: doc
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: openssh-ldap-authkeys (common documentation)
+ openssh-ldap-authkeys is a flexible mapping script that reaches out to
+ a configured LDAP server and retrieves SSH keys from that server for
+ login authorization to local accounts. It supports complex mapping rules
+ to meet the flexiblity requirements of large organizations with complex
+ access-control requirements.
+ .
+ This is the common documentation package.
