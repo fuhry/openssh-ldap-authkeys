@@ -40,6 +40,37 @@ def connect_to_ldap(address, authdn, authpw, timeout):
 
     return handle
 
+def check_user_disabled(attrs, disable_options):
+    user_disabled = False
+
+    if disable_options['attribute'] is not None \
+        and disable_options['op'] is not None \
+        and disable_options['value'] is not None:
+
+        disable_attr = attrs[disable_options['attribute']]
+
+        if disable_options['op'] in ['eq', '=', '==']:
+            if isinstance(disable_attr, list):
+                user_disabled = disable_options['value'] in disable_attr
+            else:
+                user_disabled = disable_options['value'] == disable_attr
+        elif disable_options['op'] in ['ne', 'neq', '!=']:
+            if isinstance(disable_attr, list):
+                user_disabled = disable_options['value'] not in disable_attr
+            else:
+                user_disabled = disable_options['value'] != disable_attr
+        elif disable_options['op'] in ['bitmask', 'and', '&']:
+            mask = 0
+            if isinstance(disable_attr, list):
+                for m in disable_attr:
+                    mask |= int(m)
+            else:
+                mask = int(disable_attr)
+
+            user_disabled = (mask & int(disable_options['value'])) == int(disable_options['value'])
+
+    return user_disabled
+
 def fetch_ldap_authkeys(handle, config, searches):
     """
     Fetch SSH keys from LDAP and return as a dict.
@@ -60,6 +91,7 @@ def fetch_ldap_authkeys(handle, config, searches):
     authkeys = {}
 
     config_attributes = config['ldap']['attributes']
+    disable_options = config_attributes['user_disabled']
 
     # One search per base dn
     for realm in searches.keys():
@@ -98,12 +130,19 @@ def fetch_ldap_authkeys(handle, config, searches):
 
         get_logger('ldap').info("Searching LDAP in base \"%s\" for filter \"%s\"" % (basedn, search_filter))
 
+        attrlist = [
+            config_attributes['username'], config_attributes['ssh_key']
+        ]
+
+        if disable_options['attribute'] is not None:
+            attrlist.append(disable_options['attribute'])
+
         # Perform search
         search.startSearch(
             basedn,
             ldap.SCOPE_SUBTREE,
             search_filter,
-            [config_attributes['username'], config_attributes['ssh_key']]
+            attrlist
         )
 
         search.processResults()
@@ -114,7 +153,18 @@ def fetch_ldap_authkeys(handle, config, searches):
 
             dn, attrs = entry
 
+            # Skip this user if they don't have any SSH keys
             if not config_attributes['ssh_key'] in attrs.keys():
+                continue
+
+            user_disabled = check_user_disabled(attrs, disable_options)
+
+            if user_disabled:
+                get_logger('ldap').info(
+                    'Excluding user "%s" from results because the account is disabled.' % (
+                        dn
+                    )
+                )
                 continue
 
             # Format the username.

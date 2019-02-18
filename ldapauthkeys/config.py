@@ -22,7 +22,12 @@ default_config = {
             'username': 'uid',
             'ssh_key': 'sshPublicKey',
             'group_name': 'cn',
-            'group_member': 'memberUid'
+            'group_member': 'memberUid',
+            'user_disabled': {
+                'attribute': None,
+                'op': None,
+                'value': None,
+            }
         }
     },
     'cache': {

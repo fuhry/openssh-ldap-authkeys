@@ -181,6 +181,50 @@ LDAP attribute for group members. Typically `memberUid` in POSIX environments an
 
 _Default:_ `memberUid`
 
+### `ldap.attributes.user_disabled.attribute` _(string)_
+
+LDAP attribute to check whether a user account is in a disabled state. This will be used to exclude disabled accounts from login.
+
+_Default: None_
+
+### `ldap.attributes.user_disabled.op` _(string)_
+
+Comparison operation to use for checking the disabled state of an account.
+
+* `eq`, `=` or `==`: checks that `attribute` is exactly equal to `value`
+* `ne`, `neq`, or `!=`: checks that `attribute` is not exactly equal to `value`
+* `bitmask`, `and` or `&`: checks that all the bits set in the field `value` are set in the user's LDAP attribute.
+
+_Default: None_
+
+### `ldap.attributes.user_disabled.value` _(mixed)_
+
+Comparison value for the user disable check. Should be a string for `eq` or `ne`, or an integer for `bitmask` comparison.
+
+_Default: None_
+
+#### Example user disabled check for POSIX
+
+```yaml
+ldap:
+  attributes:
+    user_disabled:
+      attribute: loginShell
+      op: eq
+      value: /sbin/nologin
+```
+
+#### Example user disabled check for Active Directory
+
+```yaml
+ldap:
+  attributes:
+    user_disabled:
+      attribute: userAccountControl
+      op: and
+      value: 2
+```
+
 ### `cache.lifetime` _(integer)_
 
 Number of seconds for which a local cache file is valid. During this window, the local cache of SSH keys will be used
