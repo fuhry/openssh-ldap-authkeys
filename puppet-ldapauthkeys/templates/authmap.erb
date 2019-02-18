@@ -1,0 +1,3 @@
+<% @authmap.each do |localuser, ldapusers| %>
+<%= localuser %>:<%= ldapusers.join(',') %>
+<% end %>

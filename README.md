@@ -37,6 +37,9 @@ Run `python3 setup.py build`, then as root/sudo `python3 setup.py install`.
 
 # Configuration
 
+A [puppet module](puppet-ldapauthkeys/README.md) is included if you wish to use that. Otherwise, follow the manual
+instructions below:
+
 1. Create a user for `openssh-ldap-authkeys`: `useradd -s /bin/false -d /dev/null -r olak`
 1. Rename the files in `/etc/openssh-ldap-authkeys`, removing the `.example` suffix. Make these files owned by
    `root:olak`, group-readable and with no world permissions (mode `0640`).

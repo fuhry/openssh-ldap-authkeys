@@ -86,7 +86,6 @@ def _load_config():
 
                 return config
         except Exception as e:
-            raise e
             continue
 
     raise FileNotFoundError("Unable to load the OLAK config from any of these paths: %s" % (', '.join(config_paths)))

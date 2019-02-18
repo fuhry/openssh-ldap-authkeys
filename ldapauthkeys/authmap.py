@@ -235,7 +235,7 @@ def get_authmap():
                 get_logger('authmap').info("Loaded auth from %s" % (path))
                 return authmap
         except Exception as e:
-            raise e
+            pass
 
     raise FileNotFoundError("Unable to load the OLAK authorized entity file from any of these paths: %s" % (', '.join(authmap_paths)))
 
