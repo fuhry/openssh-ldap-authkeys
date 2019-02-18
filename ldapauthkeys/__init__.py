@@ -1,3 +1,5 @@
+import traceback
+
 from ldapauthkeys.config import *
 from ldapauthkeys.logging import *
 from ldapauthkeys.resolver import *
@@ -121,7 +123,11 @@ def olak_main(argv):
 
     except Exception as e:
         get_logger().error(
-            "Unhandled error: %s: %s" % (e.__class__.__name__, repr(e.args))
+            "Unhandled error: %s: %s\n%s" % (
+                e.__class__.__name__,
+                repr(e.args),
+                ''.join(traceback.format_tb(e.__traceback__))
+            )
         )
 
         if load_cache_on_failure:
