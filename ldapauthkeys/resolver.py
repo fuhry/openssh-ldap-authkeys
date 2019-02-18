@@ -1,6 +1,8 @@
 import dns.resolver
 import re
 
+from ldapauthkeys.util import *
+
 class SrvRecord:
     """
     Represents a single SRV record query. Representing this as an object allows
@@ -35,24 +37,6 @@ def protocolize(records, protocol):
         result.append("%s://%s:%d" % (protocol, r.hostname, r.port))
 
     return result
-
-def basedn_to_domain(basedn):
-    """
-    Convert an LDAP base DN "dc=example,dc=com" into a DNS domain "example.com".
-    """
-    if not isinstance(basedn, str):
-        raise TypeError("basedn is expected to be a string")
-
-    basedn = basedn.lower()
-    expr = re.compile(r'^(dc=[a-z0-9-]+)(, *dc=[a-z0-9-]+)*$')
-
-    if not expr.match(basedn):
-        raise ValueError("basedn must consist of only \"dc\" components to use DNS SRV lookup")
-
-    domain = []
-    basedn = re.split(', *dc=', basedn[3:])
-
-    return '.'.join(basedn)
 
 def lookup_srv(record):
     """

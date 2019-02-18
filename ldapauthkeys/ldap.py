@@ -2,16 +2,7 @@ import ldap
 import ldap.filter
 import ldap.asyncsearch
 from ldapauthkeys.logging import get_logger
-
-def domain_to_basedn(domain):
-    """
-    Convert a domain (example.com) to base DN (dc=example,dc=com)
-    """
-    dn = []
-    for part in domain.lower().split('.'):
-        dn.append("dc=%s" % (part))
-
-    return ','.join(dn)
+from ldapauthkeys.util import *
 
 def connect_to_ldap(address, authdn, authpw, timeout):
     """
@@ -94,9 +85,7 @@ def fetch_ldap_authkeys(handle, config, searches):
     disable_options = config_attributes['user_disabled']
 
     # One search per base dn
-    for realm in searches.keys():
-        basedn = domain_to_basedn(realm)
-
+    for basedn in searches.keys():
         search = ldap.asyncsearch.List(handle)
 
         """
@@ -114,7 +103,7 @@ def fetch_ldap_authkeys(handle, config, searches):
         might be a tall order for Windows/AD.
         """
         user_searches = []
-        for user in searches[realm]:
+        for user in searches[basedn]:
             user_searches.append(
                 ldap.filter.filter_format(
                     "(%s=%s)" % (config_attributes['username'], '%s'),
@@ -168,16 +157,13 @@ def fetch_ldap_authkeys(handle, config, searches):
                 continue
 
             # Format the username.
-            if realm.upper() == config['ldap']['default_realm'].upper():
+            if basedn == config['ldap']['default_realm']:
                 # Default realm. Don't append realm name.
                 user_format = attrs[config_attributes['username']][0].decode('utf-8')
             else:
                 # Non-default realm, add "@REALM" to the username. This directly
                 # affects the value of the username_env_var.
-                user_format = "%s@%s" % (
-                    attrs[config_attributes['username']][0].decode('utf-8'),
-                    realm.upper()
-                )
+                user_format = dn
 
             # Decode SSH keys as UTF-8
             ssh_keys = []

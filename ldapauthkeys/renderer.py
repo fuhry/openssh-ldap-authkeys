@@ -20,7 +20,7 @@ def render_authkeys(authkeys, config, key_type=None, key_value=None):
         user_entry = authkeys[username]
 
         for k in user_entry[ssh_key_attr]:
-            kt, kv = k.split(' ')
+            kt, kv = k.split(' ')[0:2]
             if (key_type is None or key_type == kt) and (key_value is None or key_value == kv):
                 output.append(print_authkey(kt, kv, username, config))
 

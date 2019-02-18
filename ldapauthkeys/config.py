@@ -1,5 +1,5 @@
 import yaml
-from ldapauthkeys.resolver import basedn_to_domain
+from ldapauthkeys.util import *
 
 _cached_config = None
 
@@ -79,8 +79,10 @@ def _load_config():
         try:
             with open(path) as fp:
                 config = deep_merge(default_config, yaml.load(fp))
-                if not 'default_realm' in config['ldap'].keys():
-                    config['ldap']['default_realm'] = basedn_to_domain(config['ldap']['basedn']).upper()
+                if 'default_realm' in config['ldap'].keys():
+                    config['ldap']['default_realm'] = domain_to_basedn(config['ldap']['default_realm'])
+                else:
+                    config['ldap']['default_realm'] = config['ldap']['basedn']
 
                 return config
         except Exception as e:

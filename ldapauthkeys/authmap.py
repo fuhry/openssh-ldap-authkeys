@@ -4,7 +4,7 @@ import grp
 import ldap.asyncsearch
 import ldap.filter
 import ldap.dn
-from ldapauthkeys.ldap import domain_to_basedn
+from ldapauthkeys.util import *
 from ldapauthkeys.logging import get_logger
 from ldapauthkeys.config import array_merge_unique
 
@@ -24,7 +24,7 @@ class AuthorizedEntity:
 
     def __init__(self, entity, realm):
         self.entity = entity
-        self.realm = realm.upper()
+        self.realm = realm
 
     def to_ldap_user_list(self, connection, config):
         """
@@ -57,12 +57,18 @@ class AuthorizedGroup(AuthorizedEntity):
             "(&%s%s)" % (config['ldap']['filters']['group'], "(%s=%s)"),
             [config['ldap']['attributes']['group_name'], self.entity]
         )
-        basedn = domain_to_basedn(self.realm)
+
+        get_logger('authmap').info(
+            'Attempting to find group "%s" in basedn "%s"' % (
+                self.entity,
+                self.realm
+            )
+        )
 
         try:
             # Search the basedn for the group. Retrieve only the group
             # membership attribute - we don't care about the rest.
-            search.startSearch(basedn, ldap.SCOPE_SUBTREE, search_filter,
+            search.startSearch(self.realm, ldap.SCOPE_SUBTREE, search_filter,
                 [config['ldap']['attributes']['group_member']])
         except Exception as e:
             # On any exception, return an empty array.
@@ -81,6 +87,13 @@ class AuthorizedGroup(AuthorizedEntity):
         for rcode, result in search.allResults:
             # For each result, we have the DN of the group, and attributes.
             group_dn, attrs = result
+
+            get_logger('authmap').info(
+                'Located group "%s" at DN "%s"' % (
+                    self.entity,
+                    group_dn
+                )
+            )
 
             # Iterate through group members.
             for user in attrs[config['ldap']['attributes']['group_member']]:
@@ -108,6 +121,15 @@ class AuthorizedGroup(AuthorizedEntity):
                                 group_dn, user.decode('utf-8'), attr, config['ldap']['attributes']['username']
                             )
                         )
+
+                    get_logger('authmap').info(
+                        'Found user "%s" in group "%s"' % (
+                            value,
+                            self.entity
+                        )
+                    )
+
+                    users.append([value, self.realm])
                 else:
                     raise ValueError('Unsupported group membership strategy "%s". Supported strategies are "uid" and "dn".' % (
                         config['ldap']['group_membership']
@@ -257,6 +279,7 @@ def lookup_authmap(authmap, user, config):
         for e in entry:
             try:
                 domain_user, realm = e.split('@')
+                realm = domain_to_basedn(realm.lower())
             except ValueError:
                 domain_user = e
                 realm = config['ldap']['default_realm']
