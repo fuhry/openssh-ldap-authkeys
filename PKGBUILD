@@ -1,6 +1,6 @@
 # Maintainer: Dan Fuhry <dan@fuhry.com>
 pkgname=openssh-ldap-authkeys
-pkgver=r4.5b4b0e1
+pkgver=0.0.0
 pkgrel=1
 pkgdesc="Python script to generate SSH authorized_keys files using an LDAP directory"
 arch=('any')

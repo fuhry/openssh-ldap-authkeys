@@ -29,7 +29,7 @@ def load_cache(user, config):
 
     with open(cache_file, 'r') as fp:
         get_logger('cache').info("Loading authkeys for user \"%s\" from cachefile: %s" % (user, cache_file))
-        return yaml.load(fp)
+        return yaml.load(fp, Loader=yaml.loader.SafeLoader)
 
 def write_cache_file(user, authkeys, config):
     """

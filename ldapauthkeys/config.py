@@ -32,13 +32,15 @@ default_config = {
     },
     'cache': {
         'lifetime': 900,
-        'dir': '/var/run/ldap/ssh-cache'
+        'dir': '/var/run/ldap/ssh-cache',
+        'allow_stale_cache_on_failure': False
     },
     'output': {
         'username_env_var': 'OLAK_USER'
     },
     'logging': {
         'to_stdout': False,
+        'to_stderr': False,
     }
 }
 
@@ -78,14 +80,14 @@ def _load_config():
     for path in config_paths:
         try:
             with open(path) as fp:
-                config = deep_merge(default_config, yaml.load(fp))
+                config = deep_merge(default_config, yaml.load(fp, Loader=yaml.loader.SafeLoader))
                 if 'default_realm' in config['ldap'].keys():
                     config['ldap']['default_realm'] = domain_to_basedn(config['ldap']['default_realm'])
                 else:
                     config['ldap']['default_realm'] = config['ldap']['basedn']
 
                 return config
-        except Exception as e:
+        except FileNotFoundError as e:
             continue
 
     raise FileNotFoundError("Unable to load the OLAK config from any of these paths: %s" % (', '.join(config_paths)))

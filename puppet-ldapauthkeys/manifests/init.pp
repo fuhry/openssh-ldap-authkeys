@@ -16,7 +16,7 @@ class ldapauthkeys (
 
   $sshd_notify = $manage_sshd_service ? {
     true => [Service['olak_sshd']],
-    default => [Service['olak_sshd']],
+    default => [],
   }
 
   if ($manage_package) {
