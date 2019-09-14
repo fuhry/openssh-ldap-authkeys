@@ -3,6 +3,7 @@ class ldapauthkeys (
   Ldapauthkeys::Olakconfig  $config,
   Boolean                   $manage_package        = true,
   String                    $package_name          = $::ldapauthkeys::params::package_name,
+  String                    $package_ensure        = 'installed',
   Boolean                   $manage_sshd_config    = true,
   String                    $sshd_config_path      = $::ldapauthkeys::params::sshd_config_path,
   Boolean                   $manage_sshd_service   = true,
@@ -25,7 +26,7 @@ class ldapauthkeys (
     }
 
     package { $package_name:
-      ensure => installed,
+      ensure => $package_ensure,
       before => [
         Group['olak'],
         User['olak'],

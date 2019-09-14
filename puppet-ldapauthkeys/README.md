@@ -66,6 +66,14 @@ Name of the package to install using your distribution's package manager.
 
 _Default: autodetected based on distribution_
 
+### `$package_ensure` _(string)_
+
+Version of the package to force to. Defaults to `installed`, which merely ensures the package is installed, and does not
+attempt to upgrade it if it's out of date. Set to `latest` to always upgrade the package (if an update is available) on
+any Puppet run.
+
+_Default: `installed`_
+
 ### `$manage_sshd_config` _(boolean)_
 
 If `true`, sets all required configuration options in `sshd_config`. While this is designed to not clobber any existing
