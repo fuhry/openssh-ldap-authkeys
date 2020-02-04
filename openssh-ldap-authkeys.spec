@@ -1,30 +1,9 @@
 # Enable Python dependency generation for Fedora and EL8+
 %{?python_enable_dependency_generator}
 
-# Begin Python macros
-%{!?__python3: %global __python3 /usr/bin/python3}
-%{!?python3_pkgversion: %global python3_pkgversion 3}
-%if %{_vendor} == "debbuild"
-	%global pyinstflags --no-compile -O0
-	%global pytargetflags --install-layout=deb
-%else
-	%global pyinstflags -O1
-	%global pytargetflags %{nil}
-%endif
-
-%{!?py3_build: %global py3_build CFLAGS="%{optflags}" %{__python3} setup.py build}
-%{!?py3_install: %global py3_install %{__python3} setup.py install %{?pyinstflags} --skip-build --root %{buildroot} %{?pytargetflags}}
-
-%if %{undefined python3_sitelib}
-%global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
-%endif
-
-# End Python macros
-
 %if %{_vendor} == "debbuild"
 	%global _buildshell /bin/bash
 	%global devsuffix dev
-	%global _tmpfilesdir /usr/lib/tmpfiles.d
 %else
 	%global devsuffix devel
 %endif
@@ -45,13 +24,19 @@ Source0:	%{url}/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildArch:	noarch
 
+%if 0%{?fedora} >= 30 || 0%{?rhel} >= 9 || 0%{?suse_version}
+BuildRequires:	systemd-rpm-macros
+%else
 BuildRequires:	systemd
+%endif
 %{?systemd_requires}
 
 BuildRequires:	python%{python3_pkgversion}-%{devsuffix}
 BuildRequires:	python%{python3_pkgversion}-setuptools
 
 %if %{_vendor} == "debbuild"
+BuildRequires:	python3-deb-macros
+BuildRequires:	systemd-deb-macros
 # Compatibility with dsc packaging?
 Provides:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
 
@@ -60,7 +45,8 @@ Requires(preun): python%{python3_pkgversion}-minimal
 Requires(post):	python%{python3_pkgversion}-minimal
 Requires(pre):	passwd
 %else
-Requires(pre):	shadow-utils
+Requires(pre):	%{_sbindir}/groupadd
+Requires(pre):	%{_sbindir}/useradd
 %endif
 
 # This is only for cases that we don't have a dependency generator active...
@@ -132,14 +118,11 @@ exit 0
 
 %if %{_vendor} == "debbuild"
 %post
-# Generate tmpfiles
-systemd-tmpfiles --create openssh-ldap-authkeys.tmpfiles.conf >/dev/null 2>&1 || :
-# Do late-stage bytecompilation, per debian policy
-py3compile -p %{name} -V -4.0
+%{tmpfiles_create %{name}.tmpfiles.conf}
+%{py3_bytecompile_post %{name}}
 
 %preun
-# Ensure all __pycache__ files are deleted, per debian policy
-py3clean -p %{name}
+%{py3_bytecompile_preun %{name}}
 %endif
 
 
