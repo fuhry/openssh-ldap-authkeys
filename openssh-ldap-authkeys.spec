@@ -1,7 +1,7 @@
 # Enable Python dependency generation for Fedora and EL8+
 %{?python_enable_dependency_generator}
 
-%if %{_vendor} == "debbuild"
+%if "%{_vendor}" == "debbuild"
 	%global _buildshell /bin/bash
 	%global devsuffix dev
 %else
@@ -13,7 +13,7 @@ Version:	0.2.0
 Release:	1%{?dist}
 Summary:	Python script to generate SSH authorized_keys files using an LDAP directory
 
-%if %{_vendor} == "debbuild"
+%if "%{_vendor}" == "debbuild"
 Packager:	Dan Fuhry <dan@fuhry.com>
 Group:		admin
 %endif
@@ -34,7 +34,7 @@ BuildRequires:	systemd
 BuildRequires:	python%{python3_pkgversion}-%{devsuffix}
 BuildRequires:	python%{python3_pkgversion}-setuptools
 
-%if %{_vendor} == "debbuild"
+%if "%{_vendor}" == "debbuild"
 BuildRequires:	python3-deb-macros
 BuildRequires:	systemd-deb-macros
 # Compatibility with dsc packaging?
@@ -54,13 +54,13 @@ Requires(pre):	%{_sbindir}/useradd
 Requires:	python%{python3_pkgversion}-ldap
 
 # Names are fun...
-%if %{_vendor} == "redhat"
+%if "%{_vendor}" == "redhat"
 Requires:	python%{python3_pkgversion}-dns
 %else
 Requires:	python%{python3_pkgversion}-dnspython
 %endif
 
-%if %{_vendor} == "suse"
+%if "%{_vendor}" == "suse"
 Requires:	python%{python3_pkgversion}-PyYAML
 %else
 Requires:	python%{python3_pkgversion}-yaml
@@ -95,7 +95,7 @@ to who used them.
 
 
 %files
-%if %{_vendor} == "debbuild"
+%if "%{_vendor}" == "debbuild"
 %license debian/copyright
 %endif
 %license COPYING
@@ -117,7 +117,7 @@ getent passwd olak >/dev/null || \
 exit 0
 
 
-%if %{_vendor} == "debbuild"
+%if "%{_vendor}" == "debbuild"
 %post
 %{sysusers_create %{name}.sysusers.conf}
 %{tmpfiles_create %{name}.tmpfiles.conf}
