@@ -50,7 +50,7 @@ Requires(pre):	%{_sbindir}/useradd
 %endif
 
 # This is only for cases that we don't have a dependency generator active...
-%if (0%{?rhel} && 0%{?rhel} < 8) || 0%{?suse_version} || 0%{?debian} || 0%{?ubuntu}
+%if %{undefined python_enable_dependency_generator} && %{undefined python_disable_dependency_generator}
 Requires:	python%{python3_pkgversion}-ldap
 
 # Names are fun...
