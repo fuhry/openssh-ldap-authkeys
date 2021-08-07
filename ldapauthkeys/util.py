@@ -1,3 +1,5 @@
+import re
+
 def basedn_to_domain(basedn):
     """
     Convert an LDAP base DN "dc=example,dc=com" into a DNS domain "example.com".
