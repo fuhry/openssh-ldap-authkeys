@@ -1,3 +1,4 @@
+from ldapauthkeys.logging import get_logger
 import dns.resolver
 import re
 
@@ -42,8 +43,12 @@ def lookup_srv(record):
     """
     Perform a SRV record lookup, returning a list of SrvRecord objects.
     """
-    answer = dns.resolver.query(record, 'SRV')
-
+    try:
+        answer = dns.resolver.query(record, 'SRV')
+    except Exception:
+        get_logger('resolve').info("SRV lookup failed")
+        return []
+ 
     result = []
     for rr in answer.rrset:
         result.append(SrvRecord(rr.target.to_unicode(), rr.port, rr.priority, rr.weight))
