@@ -1,10 +1,12 @@
 type Ldapauthkeys::Ldapconfig = Struct[{
 	basedn => String,
 	use_dns_srv => Boolean,
+	srv_discovery_domain => Optional[String],
 	server_uri => Optional[String],
 	default_realm => Optional[String],
 	authdn => Optional[String],
 	authpw => Optional[String],
+	sasl_method => Optional[Enum['EXTERNAL']],
 	timeout => Optional[Integer],
 	filters => Struct[{
 		user => String,

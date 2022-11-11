@@ -18,6 +18,7 @@ default_config = {
         },
         'authdn': None,
         'authpw': None,
+        'sasl_method': None,
         'group_membership': 'uid',
         'attributes': {
             'username': 'uid',
@@ -30,6 +31,15 @@ default_config = {
                 'value': None,
             }
         }
+    },
+    'tls': {
+        'require': 'allow',
+        'ca_file': None,
+        'ca_dir': None,
+        'client_credentials': {
+            'certificate': None,
+            'private_key': None,
+        },
     },
     'cache': {
         'lifetime': 900,

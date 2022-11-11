@@ -3,8 +3,9 @@ import ldap.filter
 import ldap.asyncsearch
 from ldapauthkeys.logging import get_logger
 from ldapauthkeys.util import *
+from urllib.parse import urlparse
 
-def connect_to_ldap(address, authdn, authpw, timeout):
+def connect_to_ldap(config, address, authdn, authpw, timeout):
     """
     Connect to an LDAP server.
 
@@ -21,13 +22,72 @@ def connect_to_ldap(address, authdn, authpw, timeout):
 
     handle.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
 
-    if authdn is not None and authpw is not None:
+    if config['tls']['ca_file'] is not None and config['tls']['ca_dir'] is not None:
+        raise RuntimeError('Only one of ca_file or ca_dir may be specified')
+
+    if config['tls']['require'] not in ['prohibit', 'noverify', 'allow', 'require']:
+        raise RuntimeError('Invalid value for "tls.require": must be one of "prohibit", "noverify", "allow" or "require"')
+
+    scheme = urlparse(address).scheme
+    if scheme == 'ldaps' and config['tls']['require'] == 'prohibit':
+        raise RuntimeError('TLS connections prohibited by config')
+
+    tls_overridden = False
+
+    if config['tls']['require'] == 'noverify':
+        handle.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+        handle.set_option(ldap.OPT_X_TLS_REQUIRE_SAN, ldap.OPT_X_TLS_NEVER)
+        tls_overridden = True
+    elif config['tls']['require'] in ['allow', 'require']:
+        handle.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+        handle.set_option(ldap.OPT_X_TLS_REQUIRE_SAN, ldap.OPT_X_TLS_DEMAND)
+        tls_overridden = True
+
+    if isinstance(config['tls']['ca_file'], str):
+        handle.set_option(ldap.OPT_X_TLS_CACERTFILE, config['tls']['ca_file'])
+        tls_overridden = True
+    elif isinstance(config['tls']['ca_dir'], str):
+        handle.set_option(ldap.OPT_X_TLS_CACERTDIR, config['tls']['ca_dir'])
+        tls_overridden = True
+
+    client_creds = config['tls']['client_credentials']
+    if isinstance(client_creds['certificate'], str) and isinstance(client_creds['private_key'], str):
+        handle.set_option(ldap.OPT_X_TLS_CERTFILE, client_creds['certificate'])
+        handle.set_option(ldap.OPT_X_TLS_KEYFILE, client_creds['private_key'])
+
+        tls_overridden = True
+    elif client_creds['certificate'] is None and client_creds['private_key'] is None:
+        pass  # for validation
+    else:
+        raise RuntimeError('client certificate and private key must both be specified')
+
+    if tls_overridden:
+        handle.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+
+    if config['tls']['require'] != 'prohibit':
+        if scheme == 'ldap':
+            handle.start_tls_s()
+
+    if isinstance(config['ldap']['sasl_method'], str):
+        if authdn is not None:
+            get_logger('ldap').warn('Both sasl_method and authdn/authpw specified. Using SASL and ignoring simple bind settings.')
+        if config['ldap']['sasl_method'] == 'EXTERNAL':
+            handle.sasl_external_bind_s()
+        else:
+            raise RuntimeError(f"Unsupported SASL method: {config['ldap']['sasl_method']}")
+    elif authdn is not None and authpw is not None:
         result = handle.simple_bind_s(authdn, authpw)
 
         if not result:
             raise RuntimeError('Failed to bind to server "%s" as "%s"' % (address, authdn))
+    else:
+        get_logger('ldap').warn('Attempting anonymous bind. Is this really what you want?')
+        result = handle.simple_bind_s(None, None)
 
-    get_logger('ldap').info('Connected to LDAP server %s and bound successfully' % (address))
+        if not result:
+            raise RuntimeError('Failed to bind anonymously to server "%s"' % (address))
+
+    get_logger('ldap').info('Connected to LDAP server %s and bound successfully as %s' % (address, handle.whoami_s()))
 
     return handle
 

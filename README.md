@@ -132,6 +132,20 @@ Password to be used when performing a simple bind. If omitted, the script will u
 
 _Default: none_
 
+### `ldap.sasl_method` _(string)_
+
+SASL method to use to bind to LDAP. If omitted (the default behavior), SASL binding is not attempted.
+
+If this setting and `authdn` are both set, a warning is omitted and simple bind settings are ignored.
+
+The following methods are supported (case sensitive):
+
+* `EXTERNAL`
+
+To specify paths to a client certificate and private key, see the `tls`-related options below.
+
+_Default: none_
+
 ### `ldap.timeout` _(integer)_
 
 Timeout for establishing of the LDAP connection.
@@ -236,6 +250,45 @@ ldap:
       op: and
       value: 2
 ```
+
+### `tls.require` _(string)_
+
+Control TLS behavior when connecting to the LDAP server. The following values are understood:
+
+* `prohibit` requires plain-text connections. Only unencrypted connections will be attempted. Specifying this value in combination with an `ldaps://` server URI will generate an error.
+* `noverify` negotiates TLS, but performs no verification whatsoever on the server certificate. The `ca_file` and `ca_dir` options are ignored in this case.
+* `allow` attempts to connect using TLS first, and will attempt `STARTTLS` when connecting to a server using the unsecured LDAP port (389) or when using an `ldap://` URI. If `STARTTLS` fails, the client will fall back to an  unencrypted connection.
+* `require` causes the client to reject connections that are not secured by TLS.
+
+**Note:** The behavior of the `allow` option is presently untested and not fully supported.
+
+_Default:_ `allow`
+
+### `tls.ca_file` _(string)_
+
+Path to a file containing root certificates the client will consider valid. If both this setting and `tls.ca_dir` are omitted, the client will use the default LDAP library behavior, which typically means using the default certificate storage provided by the OS.
+
+_Default: None_
+
+### `tls.ca_dir` _(string)_
+
+Path to a directory containing root certificates the client will consider valid. Files in this directory may need to be named using OpenSSL's hash format `xxxxxxxx.n`, where `x` is a hexadecimal digit and `n` is a decimal number.
+
+If both this setting and `tls.ca_file` are omitted, the client will use the default LDAP library behavior, which typically means using the default certificate storage provided by the OS.
+
+_Default: None_
+
+### `tls.client_credentials.certificate` _(string)_
+
+### `tls.client_credentials.private_key` _(string)_
+
+If these settings are specified, the client will search these paths for a PEM-encoded X.509 certificate and private key to present during the TLS handshake with the LDAP server.
+
+Both options must be specified; otherwise, an error will be generated.
+
+In order to use the client certificate as the authentication vector against the LDAP server, set `ldap.sasl_method` to `EXTERNAL`.
+
+_Default: None_
 
 ### `cache.lifetime` _(integer)_
 

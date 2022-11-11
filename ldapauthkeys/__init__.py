@@ -96,7 +96,8 @@ def olak_main(argv):
 
         for addr in ldap_server_addresses:
             try:
-                ldap = connect_to_ldap(addr,
+                ldap = connect_to_ldap(config,
+                    addr,
                     config['ldap']['authdn'],
                     config['ldap']['authpw'],
                     config['ldap']['timeout'])
