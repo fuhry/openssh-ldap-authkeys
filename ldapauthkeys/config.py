@@ -11,6 +11,7 @@ config_paths = [
 default_config = {
     'ldap': {
         'use_dns_srv': False,
+        'srv_discovery_domain': '',
         'filters': {
             'user': '(&(objectClass=posixAccount)(sshPublicKey=*))',
             'group': '(objectClass=posixGroup)'

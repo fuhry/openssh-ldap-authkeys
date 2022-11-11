@@ -85,9 +85,10 @@ _Default: generated from your basedn_
 ### `ldap.use_dns_srv` _(boolean)_
 
 Whether to attempt to discover the LDAP server using DNS SRV records. If this is set to `true`, a domain name will be
-generated using the domain components of `ldap.basedn` and converted to a DNS domain name. From there,
-`openssh-ldap-authkeys` will attempt to discover the LDAP server first using the service name `_ldaps._tcp` (for LDAP
-with TLS) and then `_ldap._tcp` (for unsecured LDAP).
+generated using the domain components of `ldap.basedn` and converted to a DNS domain name. (This can be overridden
+using the `ldap.srv_discovery_domain` option; see below.) From there, `openssh-ldap-authkeys` will attempt to discover
+the LDAP server first using the service name `_ldaps._tcp` (for LDAP with TLS) and then `_ldap._tcp` (for unsecured
+LDAP).
 
 An example of LDAP SRV records would be:
 
@@ -100,6 +101,13 @@ If LDAP server discovery fails, `ldap.server_uri` will be used instead. However,
 unable to connect to any discovered server, it will _not_ fall back to `ldap.server_uri`.
 
 _Default: false_
+
+### `ldap.srv_discovery_domain` _(string)_
+
+Domain name under which to perform service discovery, if different from the basedn.
+
+Defaults to a dynamic value generated from the basedn: a basedn of `dc=example,dc=com` will default to the use of
+`example.com` for this option. If overridden, the default discovery domain is not used.
 
 ### `ldap.server_uri` _(string)_
 

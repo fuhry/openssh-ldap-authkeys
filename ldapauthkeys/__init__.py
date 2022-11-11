@@ -70,7 +70,12 @@ def olak_main(argv):
         try:
             # Attempt SRV lookup
             if config['ldap']['use_dns_srv']:
-                ldap_server_addresses = resolve_ldap_srv(config['ldap']['basedn'])
+                if isinstance(config['ldap']['srv_discovery_domain'], str) and config['ldap']['srv_discovery_domain'] != '':
+                    ldap_server_addresses = resolve_ldap_srv(
+                        config['ldap']['srv_discovery_domain'])
+                else:
+                    ldap_server_addresses = resolve_ldap_srv(
+                        basedn_to_domain(config['ldap']['basedn']))
         except Exception as e:
             get_logger('ldap').warn(
                 "LDAP SRV resolution failed: %s: %s" % (

@@ -3,6 +3,7 @@ import dns.resolver
 import re
 
 from ldapauthkeys.util import *
+from .logging import get_logger
 
 class SrvRecord:
     """
@@ -32,10 +33,13 @@ def protocolize(records, protocol):
     Given a list of SrvRecords, turn them into URLs in the format of
     "protocol://{record.host}:{record.port}".
     """
-    result = []
+    result = [
+        "%s://%s:%d" % (protocol, r.hostname, r.port)
+        for r in records
+    ]
 
-    for r in records:
-        result.append("%s://%s:%d" % (protocol, r.hostname, r.port))
+    for url in result:
+        get_logger('resolver').info(f'SRV discovery found server: {url}')
 
     return result
 
@@ -55,14 +59,12 @@ def lookup_srv(record):
 
     return sort_srv_results(result)
 
-def resolve_ldap_srv(basedn):
+def resolve_ldap_srv(domain):
     """
     Given an LDAP basedn, attempt to auto-discover LDAP servers for the domain
     name it represents. Returns a list of URLs in the format of
     "ldap(s)://server:port".
     """
-    domain = basedn_to_domain(basedn)
-
     # try LDAPS first
     results = lookup_srv('_ldaps._tcp.%s' % (domain))
     if len(results):
