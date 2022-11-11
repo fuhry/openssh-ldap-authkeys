@@ -9,7 +9,7 @@
 %endif
 
 Name:		openssh-ldap-authkeys
-Version:	0.1.0
+Version:	0.2.0
 Release:	1%{?dist}
 Summary:	Python script to generate SSH authorized_keys files using an LDAP directory
 
