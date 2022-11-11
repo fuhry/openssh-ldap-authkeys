@@ -18,6 +18,7 @@ setup(
     url='https://github.com/fuhry/openssh-ldap-authkeys',
     data_files=[
         ('/etc/openssh-ldap-authkeys', ['olak.yml.example', 'authmap.example']),
+        ('/usr/lib/sysusers.d', ['openssh-ldap-authkeys.sysusers.conf']),
         ('/usr/lib/tmpfiles.d', ['openssh-ldap-authkeys.tmpfiles.conf']),
     ]
 )

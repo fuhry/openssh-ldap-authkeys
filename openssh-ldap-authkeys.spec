@@ -106,6 +106,7 @@ to who used them.
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/olak.yml.example
 %config(noreplace) %{_sysconfdir}/%{name}/authmap.example
+%{_sysusersdir}/openssh-ldap-authkeys.sysusers.conf
 %{_tmpfilesdir}/openssh-ldap-authkeys.tmpfiles.conf
 
 %pre
@@ -118,6 +119,7 @@ exit 0
 
 %if %{_vendor} == "debbuild"
 %post
+%{sysusers_create %{name}.sysusers.conf}
 %{tmpfiles_create %{name}.tmpfiles.conf}
 %{py3_bytecompile_post %{name}}
 
