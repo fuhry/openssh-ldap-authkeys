@@ -1,13 +1,6 @@
 # Enable Python dependency generation for Fedora and EL8+
 %{?python_enable_dependency_generator}
 
-%if "%{_vendor}" == "debbuild"
-	%global _buildshell /bin/bash
-	%global devsuffix dev
-%else
-	%global devsuffix devel
-%endif
-
 Name:		openssh-ldap-authkeys
 Version:	0.2.0
 Release:	1%{?dist}
@@ -24,30 +17,21 @@ Source0:	%{url}/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildArch:	noarch
 
-%if 0%{?fedora} >= 30 || 0%{?rhel} >= 9 || 0%{?suse_version}
-BuildRequires:	systemd-rpm-macros
-%else
-BuildRequires:	systemd
-%endif
-%{?systemd_requires}
-
-BuildRequires:	python%{python3_pkgversion}-%{devsuffix}
-BuildRequires:	python%{python3_pkgversion}-setuptools
 
 %if "%{_vendor}" == "debbuild"
+BuildRequires:	python%{python3_pkgversion}-dev
 BuildRequires:	python3-deb-macros
 BuildRequires:	systemd-deb-macros
 # Compatibility with dsc packaging?
 Provides:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
-
-# Requirements for py3compile / py3clean scripts
-Requires(preun): python%{python3_pkgversion}-minimal
-Requires(post):	python%{python3_pkgversion}-minimal
-Requires(pre):	passwd
+%{?py3_bytecompile_requires}
 %else
-Requires(pre):	%{_sbindir}/groupadd
-Requires(pre):	%{_sbindir}/useradd
+BuildRequires:	python%{python3_pkgversion}-devel
+BuildRequires:	systemd-rpm-macros
 %endif
+%{?systemd_requires}
+
+BuildRequires:	python%{python3_pkgversion}-setuptools
 
 # This is only for cases that we don't have a dependency generator active...
 %if %{undefined python_enable_dependency_generator} && %{undefined python_disable_dependency_generator}
@@ -109,22 +93,14 @@ to who used them.
 %{_sysusersdir}/openssh-ldap-authkeys.sysusers.conf
 %{_tmpfilesdir}/openssh-ldap-authkeys.tmpfiles.conf
 
-%pre
-getent group olak >/dev/null || groupadd -r olak
-getent passwd olak >/dev/null || \
-    useradd -r -g olak -d /dev/null -s /bin/false \
-    -c "System account for %{name} to run as" olak
-exit 0
-
-
 %if "%{_vendor}" == "debbuild"
 %post
-%{sysusers_create %{name}.sysusers.conf}
-%{tmpfiles_create %{name}.tmpfiles.conf}
-%{py3_bytecompile_post %{name}}
+%sysusers_create %{name}.sysusers.conf
+%tmpfiles_create %{name}.tmpfiles.conf
+%py3_bytecompile_post %{name}
 
 %preun
-%{py3_bytecompile_preun %{name}}
+%py3_bytecompile_preun %{name}
 %endif
 
 
