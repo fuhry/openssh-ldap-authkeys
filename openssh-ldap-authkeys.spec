@@ -93,6 +93,12 @@ to who used them.
 %{_sysusersdir}/openssh-ldap-authkeys.sysusers.conf
 %{_tmpfilesdir}/openssh-ldap-authkeys.tmpfiles.conf
 
+%if 0%{?el7}
+%post
+%sysusers_create %{name}.sysusers.conf
+%tmpfiles_create %{name}.tmpfiles.conf
+%endif
+
 %if "%{_vendor}" == "debbuild"
 %post
 %sysusers_create %{name}.sysusers.conf
