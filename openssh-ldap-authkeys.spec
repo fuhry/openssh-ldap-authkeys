@@ -3,7 +3,7 @@
 
 Name:		openssh-ldap-authkeys
 Version:	0.2.0
-Release:	1%{?dist}
+Release:	0%{?dist}
 Summary:	Python script to generate SSH authorized_keys files using an LDAP directory
 
 %if "%{_vendor}" == "debbuild"
@@ -111,5 +111,8 @@ to who used them.
 
 
 %changelog
+* Fri Nov 11 2022 Dan Fuhry <dan@fuhry.com> - 0.2.0
+- New release
+
 * Fri Feb 22 2019 Neal Gompa <ngompa13@gmail.com> - 0.1.0
 - Initial release
