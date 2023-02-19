@@ -7,7 +7,7 @@
 
 Name:		openssh-ldap-authkeys
 Version:	0.2.0
-Release:	0%{?dist}
+Release:	2%{?dist}
 Summary:	Python script to generate SSH authorized_keys files using an LDAP directory
 
 %if "%{_vendor}" == "debbuild"
@@ -93,7 +93,6 @@ to who used them.
 %if "%{_enableselinux}" == "1"
 pushd selinux
 make -f /usr/share/selinux/devel/Makefile olak.pp
-sepolicy manpage -p . -d olak_t
 popd
 %endif
 
@@ -133,17 +132,18 @@ install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak_selinux.8 %{buildroo
 %{_mandir}/man8/olak_selinux.8.*
 %endif
 
-%if 0%{?el7}
 %post
+%if 0%{?el7}
 %sysusers_create %{name}.sysusers.conf
 %tmpfiles_create %{name}.tmpfiles.conf
 %endif
 
 %if "%{_vendor}" == "debbuild"
-%post
 %sysusers_create %{name}.sysusers.conf
 %tmpfiles_create %{name}.tmpfiles.conf
 %py3_bytecompile_post %{name}
+%endif
+
 %if "%{_enableselinux}" == "1"
 semodule -n -i %{_datadir}/selinux/packages/olak.pp
 if /usr/sbin/selinuxenabled ; then
@@ -153,12 +153,13 @@ if /usr/sbin/selinuxenabled ; then
 fi;
 %endif
 
+%if "%{_vendor}" == "debbuild"
 %preun
 %py3_bytecompile_preun %{name}
 %endif
 
-%postun
 %if "%{_enableselinux}" == "1"
+%postun
 if [ $1 -eq 0 ]; then
 	semodule -n -r olak
 	if /usr/sbin/selinuxenabled ; then
