@@ -1,6 +1,10 @@
 # Enable Python dependency generation for Fedora and EL8+
 %{?python_enable_dependency_generator}
 
+%if "%{_vendor}" == "redhat"
+%define _enableselinux 1
+%endif
+
 Name:		openssh-ldap-authkeys
 Version:	0.2.0
 Release:	0%{?dist}
@@ -52,6 +56,20 @@ Requires:	python%{python3_pkgversion}-yaml
 
 %endif
 
+# SELinux stuff!
+%if "%{_enableselinux}" == "1"
+%define relabel_files() \
+restorecon -R /usr/bin/openssh-ldap-authkeys \
+    /etc/openssh-ldap-authkeys; \
+
+%define selinux_policyver 37.19-1
+
+BuildRequires: selinux-policy-devel >= %{selinux_policyver}
+Requires: policycoreutils, libselinux-utils
+Requires(post): selinux-policy-base >= %{selinux_policyver}, policycoreutils
+Requires(postun): policycoreutils
+%endif
+
 
 %description
 openssh-ldap-authkeys is an implementation of AuthorizedKeysCommand for
@@ -72,10 +90,27 @@ to who used them.
 
 %build
 %py3_build
+%if "%{_enableselinux}" == "1"
+pushd selinux
+make -f /usr/share/selinux/devel/Makefile olak.pp
+sepolicy manpage -p . -d olak_t
+popd
+%endif
 
 
 %install
 %py3_install
+
+%if "%{_enableselinux}" == "1"
+install -d %{buildroot}%{_datadir}/selinux/packages
+install -d %{buildroot}%{_datadir}/selinux/devel/include/contrib
+install -d %{buildroot}%{_mandir}/man8/
+install -d %{buildroot}/etc/selinux/targeted/contexts/users/
+
+install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak.pp %{buildroot}%{_datadir}/selinux/packages
+install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak.if  %{buildroot}%{_datadir}/selinux/devel/include/contrib/
+install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak_selinux.8 %{buildroot}%{_mandir}/man8/
+%endif
 
 
 %files
@@ -92,6 +127,11 @@ to who used them.
 %config(noreplace) %{_sysconfdir}/%{name}/authmap.example
 %{_sysusersdir}/openssh-ldap-authkeys.sysusers.conf
 %{_tmpfilesdir}/openssh-ldap-authkeys.tmpfiles.conf
+%if "%{_enableselinux}" == "1"
+%attr(0600,root,root) %{_datadir}/selinux/packages/olak.pp
+%{_datadir}/selinux/devel/include/contrib/olak.if
+%{_mandir}/man8/olak_selinux.8.*
+%endif
 
 %if 0%{?el7}
 %post
@@ -104,10 +144,30 @@ to who used them.
 %sysusers_create %{name}.sysusers.conf
 %tmpfiles_create %{name}.tmpfiles.conf
 %py3_bytecompile_post %{name}
+%if "%{_enableselinux}" == "1"
+semodule -n -i %{_datadir}/selinux/packages/olak.pp
+if /usr/sbin/selinuxenabled ; then
+    /usr/sbin/load_policy
+    %relabel_files
+
+fi;
+%endif
 
 %preun
 %py3_bytecompile_preun %{name}
 %endif
+
+%postun
+%if "%{_enableselinux}" == "1"
+if [ $1 -eq 0 ]; then
+	semodule -n -r olak
+	if /usr/sbin/selinuxenabled ; then
+		/usr/sbin/load_policy
+		%relabel_files
+	fi;
+fi;
+%endif
+exit 0
 
 
 %changelog

@@ -1,0 +1,78 @@
+policy_module(olak, 1.0.0)
+
+require {
+	type proc_net_t;
+	type sshd_t;
+	type var_run_t;
+
+	class tcp_socket { bind connect getattr setopt shutdown read write };
+	class netlink_route_socket { bind getattr getopt nlmsg_read setopt };
+	class udp_socket { connect getattr read write };
+	class unix_dgram_socket { getopt setopt };
+	class capability { dac_override dac_read_search };
+
+	class dir search;
+	class file { create getattr ioctl open read write };
+	class lnk_file read;
+};
+
+########################################
+#
+# Declarations
+#
+
+type olak_t;
+type olak_exec_t;
+type olak_config_t;
+type olak_cache_t;
+init_daemon_domain(olak_t, olak_exec_t)
+
+########################################
+#
+# olak local policy
+#
+allow olak_t olak_config_t:dir search;
+allow olak_t olak_config_t:file { getattr ioctl open read };
+allow olak_t self:capability { dac_override dac_read_search };
+allow olak_t self:netlink_route_socket { bind create getattr getopt nlmsg_read setopt };
+allow olak_t self:tcp_socket { bind connect create getattr setopt shutdown };
+allow olak_t self:udp_socket { connect create getattr };
+allow olak_t self:unix_dgram_socket { getopt setopt };
+allow olak_t var_run_t:file { create getattr ioctl open read write };
+allow olak_t self:netlink_route_socket { read write };
+allow olak_t self:tcp_socket { read write };
+allow olak_t self:udp_socket { read write };
+
+corecmd_exec_bin(olak_t)
+corecmd_mmap_bin_files(olak_t)
+corenet_tcp_bind_generic_node(olak_t)
+corenet_tcp_connect_ldap_port(olak_t)
+corenet_tcp_sendrecv_ldap_port(olak_t)
+corenet_tcp_sendrecv_syslogd_port(olak_t)
+corenet_udp_send_syslogd_port(olak_t)
+dev_read_sysfs(olak_t)
+files_rw_pid_dirs(olak_t)
+kernel_read_net_sysctls(olak_t)
+kernel_read_network_state_symlinks(olak_t)
+kernel_search_network_sysctl(olak_t)
+miscfiles_read_generic_certs(olak_t)
+sysnet_read_config(olak_t)
+userdom_manage_user_home_content_dirs(olak_t)
+logging_send_syslog_msg(olak_t)
+userdom_use_inherited_user_ptys(olak_t)
+fs_associate(olak_config_t)
+fs_associate(olak_cache_t)
+
+########################################
+#
+# other things that need to work on OLAK's stuff
+#
+olak_config_rw(unconfined_t)
+olak_config_rw(puppetagent_exec_t)
+olak_config_rw(puppetagent_t)
+
+########################################
+#
+# domain transitions
+#
+olak_domtrans(sshd_t)

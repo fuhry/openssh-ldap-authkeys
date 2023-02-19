@@ -1,0 +1,70 @@
+
+## <summary>policy for olak</summary>
+
+########################################
+## <summary>
+##	Execute olak_exec_t in the olak domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`olak_domtrans',`
+	gen_require(`
+		type olak_t, olak_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, olak_exec_t, olak_t);
+')
+
+######################################
+## <summary>
+##	Execute olak in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`olak_exec',`
+	gen_require(`
+		type olak_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, olak_exec_t)
+')
+
+interface(`olak_file_rw',`
+	gen_require(`
+		type $1, $2;
+
+		class dir  { getattr setattr open read write ioctl create rename relabelfrom relabelto rmdir search add_name remove_name };
+		class file { getattr setattr open read write ioctl create rename relabelfrom relabelto unlink };
+	')
+
+
+	allow $1 $2:dir  { getattr setattr open read write ioctl create rename relabelfrom relabelto rmdir search add_name remove_name };
+	allow $1 $2:file { getattr setattr open read write ioctl create rename relabelfrom relabelto unlink };
+')
+
+
+######################################
+## <summary>
+##	Allow read/write access to OLAK configuration
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`olak_config_rw',`
+	olak_file_rw($1, olak_config_t)
+	olak_file_rw($1, olak_cache_t)
+')
+
