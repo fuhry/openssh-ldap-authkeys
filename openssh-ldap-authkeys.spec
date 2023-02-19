@@ -1,8 +1,8 @@
 # Enable Python dependency generation for Fedora and EL8+
 %{?python_enable_dependency_generator}
 
-%if "%{_vendor}" == "redhat"
-%define _enableselinux 1
+%if "%{_vendor}" != "debbuild"
+%global with_selinux 1
 %endif
 
 Name:		openssh-ldap-authkeys
@@ -56,20 +56,15 @@ Requires:	python%{python3_pkgversion}-yaml
 
 %endif
 
-# SELinux stuff!
-%if "%{_enableselinux}" == "1"
-%define relabel_files() \
-restorecon -R /usr/bin/openssh-ldap-authkeys \
-    /etc/openssh-ldap-authkeys; \
+%if 0%{?with_selinux}
 
-%define selinux_policyver 37.19-1
-
-BuildRequires: selinux-policy-devel >= %{selinux_policyver}
-Requires: policycoreutils, libselinux-utils
-Requires(post): selinux-policy-base >= %{selinux_policyver}, policycoreutils
-Requires(postun): policycoreutils
+%if 0%{?rhel} && 0%{?rhel} < 8
+Requires:	%{name}-selinux = %{version}-%{release}
+%else
+Requires:	(%{name}-selinux = %{version}-%{release} if selinux-policy)
 %endif
 
+%endif
 
 %description
 openssh-ldap-authkeys is an implementation of AuthorizedKeysCommand for
@@ -83,35 +78,21 @@ key is a quick and painless exercise for the user or IT department.
 openssh-ldap-authkeys allows shared accounts to be fully auditable as
 to who used them.
 
-
-%prep
-%autosetup -p1
-
-
-%build
-%py3_build
-%if "%{_enableselinux}" == "1"
-pushd selinux
-make -f /usr/share/selinux/devel/Makefile olak.pp
-sepolicy manpage -p . -d olak_t
-popd
+%if 0%{?el7}
+%post
+%sysusers_create %{name}.sysusers.conf
+%tmpfiles_create %{name}.tmpfiles.conf
 %endif
 
+%if "%{_vendor}" == "debbuild"
+%post
+%sysusers_create %{name}.sysusers.conf
+%tmpfiles_create %{name}.tmpfiles.conf
+%py3_bytecompile_post %{name}
 
-%install
-%py3_install
-
-%if "%{_enableselinux}" == "1"
-install -d %{buildroot}%{_datadir}/selinux/packages
-install -d %{buildroot}%{_datadir}/selinux/devel/include/contrib
-install -d %{buildroot}%{_mandir}/man8/
-install -d %{buildroot}/etc/selinux/targeted/contexts/users/
-
-install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak.pp %{buildroot}%{_datadir}/selinux/packages
-install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak.if  %{buildroot}%{_datadir}/selinux/devel/include/contrib/
-install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak_selinux.8 %{buildroot}%{_mandir}/man8/
+%preun
+%py3_bytecompile_preun %{name}
 %endif
-
 
 %files
 %if "%{_vendor}" == "debbuild"
@@ -127,47 +108,77 @@ install -m 644 %{_builddir}/%{name}-%{version}/selinux/olak_selinux.8 %{buildroo
 %config(noreplace) %{_sysconfdir}/%{name}/authmap.example
 %{_sysusersdir}/openssh-ldap-authkeys.sysusers.conf
 %{_tmpfilesdir}/openssh-ldap-authkeys.tmpfiles.conf
-%if "%{_enableselinux}" == "1"
-%attr(0600,root,root) %{_datadir}/selinux/packages/olak.pp
-%{_datadir}/selinux/devel/include/contrib/olak.if
-%{_mandir}/man8/olak_selinux.8.*
-%endif
 
-%if 0%{?el7}
-%post
-%sysusers_create %{name}.sysusers.conf
-%tmpfiles_create %{name}.tmpfiles.conf
-%endif
 
-%if "%{_vendor}" == "debbuild"
-%post
-%sysusers_create %{name}.sysusers.conf
-%tmpfiles_create %{name}.tmpfiles.conf
-%py3_bytecompile_post %{name}
-%if "%{_enableselinux}" == "1"
-semodule -n -i %{_datadir}/selinux/packages/olak.pp
-if /usr/sbin/selinuxenabled ; then
-    /usr/sbin/load_policy
-    %relabel_files
+%if 0%{?with_selinux}
+# -------------------------------------------------------------------
 
-fi;
-%endif
+%package selinux
+Summary:	SELinux module for %{name}
+BuildRequires:	selinux-policy
+BuildRequires:	selinux-policy-devel
+BuildRequires:	make
+%{?selinux_requires}
 
-%preun
-%py3_bytecompile_preun %{name}
-%endif
+%description selinux
+This package provides the SELinux policy module to ensure
+%{name} runs properly under an environment with
+SELinux enabled.
 
-%postun
-%if "%{_enableselinux}" == "1"
+%pre selinux
+%selinux_relabel_pre
+
+%post selinux
+%selinux_modules_install %{_datadir}/selinux/packages/olak.pp.bz2
+
+%posttrans selinux
+if [ $1 -eq 1 ] && /usr/sbin/selinuxenabled ; then
+	fixfiles -FR %{name} || :
+fi
+
+%postun selinux
+%selinux_modules_uninstall olak
 if [ $1 -eq 0 ]; then
-	semodule -n -r olak
-	if /usr/sbin/selinuxenabled ; then
-		/usr/sbin/load_policy
-		%relabel_files
-	fi;
-fi;
+	%selinux_relabel_post
+fi
+
+%files selinux
+%license COPYING
+%attr(0600,-,-) %{_datadir}/selinux/packages/olak.pp.bz2
+%{_datadir}/selinux/devel/include/contrib/olak.if
+%{_mandir}/man8/olak_selinux.8*
+
+# -------------------------------------------------------------------
 %endif
-exit 0
+
+
+%prep
+%autosetup -p1
+
+
+%build
+%py3_build
+
+%if 0%{?with_selinux}
+pushd selinux
+make SHARE="%{_datadir}" TARGETS="olak"
+sepolicy manpage -p . -d olak_t
+popd
+%endif
+
+
+%install
+%py3_install
+
+%if 0%{?with_selinux}
+install -d %{buildroot}%{_datadir}/selinux/packages
+install -d %{buildroot}%{_datadir}/selinux/devel/include/contrib
+install -d %{buildroot}%{_mandir}/man8/
+
+install -m 644 selinux/olak.pp.bz2 %{buildroot}%{_datadir}/selinux/packages
+install -m 644 selinux/olak.if  %{buildroot}%{_datadir}/selinux/devel/include/contrib/
+install -m 644 selinux/olak_selinux.8 %{buildroot}%{_mandir}/man8/
+%endif
 
 
 %changelog
