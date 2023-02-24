@@ -3,6 +3,7 @@ class ldapauthkeys (
   Ldapauthkeys::Olakconfig  $config,
   Boolean                   $manage_package        = true,
   String                    $package_name          = $::ldapauthkeys::params::package_name,
+  String                    $selinux_package_name  = $::ldapauthkeys::params::selinux_package_name,
   String                    $package_ensure        = 'installed',
   Boolean                   $manage_sshd_config    = true,
   String                    $sshd_config_path      = $::ldapauthkeys::params::sshd_config_path,
@@ -12,7 +13,7 @@ class ldapauthkeys (
   Boolean                   $sshd_service_enable   = true,
   String                    $sshd_service_name     = $::ldapauthkeys::params::sshd_service_name,
 ) inherits ldapauthkeys::params {
-  $conffile_header = "# This file is managed by Puppet. Changes will be lost on the next agent run!"
+  $conffile_header = '# This file is managed by Puppet. Changes will be lost on the next agent run!'
   $err_os_unsupported = "Your OS family ${::os['family']} isn't supported. You can specify \$package_name and \$sshd_service_name manually to work around this."
 
   $sshd_notify = $manage_sshd_service ? {
@@ -28,15 +29,25 @@ class ldapauthkeys (
     package { $package_name:
       ensure => $package_ensure,
       before => [
-        Group['olak'],
-        User['olak'],
+        Anchor['olak_package'],
       ],
+    }
+
+    if $::os['selinux'] =~ Hash and $::os['selinux']['enabled'] {
+      package { $selinux_package_name:
+        ensure  => $package_ensure,
+        before  => Anchor['olak_package'],
+        require => Package[$package_name],
+      }
     }
   }
 
+  anchor { 'olak_package': }
+
   group { 'olak':
-    ensure => present,
-    system => true,
+    ensure  => present,
+    system  => true,
+    require => Anchor['olak_package'],
   }
   -> user { 'olak':
     ensure => present,
