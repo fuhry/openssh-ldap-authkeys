@@ -162,7 +162,6 @@ fi
 %if 0%{?with_selinux}
 pushd selinux
 make SHARE="%{_datadir}" TARGETS="olak"
-sepolicy manpage -p . -d olak_t
 popd
 %endif
 
