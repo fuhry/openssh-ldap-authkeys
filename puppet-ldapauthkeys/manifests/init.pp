@@ -26,19 +26,18 @@ class ldapauthkeys (
       fail($err_os_unsupported)
     }
 
+    if $::os['selinux'] =~ Hash and $::os['selinux']['enabled'] {
+      package { $selinux_package_name:
+        ensure => $package_ensure,
+        before => Package[$package_name],
+      }
+    }
+
     package { $package_name:
       ensure => $package_ensure,
       before => [
         Anchor['olak_package'],
       ],
-    }
-
-    if $::os['selinux'] =~ Hash and $::os['selinux']['enabled'] {
-      package { $selinux_package_name:
-        ensure  => $package_ensure,
-        before  => Anchor['olak_package'],
-        require => Package[$package_name],
-      }
     }
   }
 
