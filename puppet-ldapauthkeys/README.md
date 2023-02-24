@@ -66,6 +66,12 @@ Name of the package to install using your distribution's package manager.
 
 _Default: autodetected based on distribution_
 
+### `$selinux_package_name` _(string)_
+
+Name of the separate package containing the SELinux policy, which will be installed if your system has SELinux enabled.
+
+_Default: `${package_name}-selinux`_
+
 ### `$package_ensure` _(string)_
 
 Version of the package to force to. Defaults to `installed`, which merely ensures the package is installed, and does not

@@ -1,0 +1,7 @@
+# vim: set ts=8 sw=8 noet:
+/usr/bin/openssh-ldap-authkeys		--	gen_context(system_u:object_r:olak_exec_t,s0)
+/etc/openssh-ldap-authkeys		-d	gen_context(system_u:object_r:olak_config_t,s0)
+/etc/openssh-ldap-authkeys/[^/]+	--	gen_context(system_u:object_r:olak_config_t,s0)
+/run/ldap/ssh-cache			-d	gen_context(system_u:object_r:olak_cache_t,s0)
+/run/ldap/ssh-cache/[^/]+		--	gen_context(system_u:object_r:olak_cache_t,s0)
+

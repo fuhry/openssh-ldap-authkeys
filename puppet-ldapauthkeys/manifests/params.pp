@@ -9,6 +9,8 @@ class ldapauthkeys::params (
     default     => undef,
   }
 
+  $selinux_package_name = "${package_name}-selinux"
+
   $sshd_config_path = '/etc/ssh/sshd_config'
 
   $sshd_service_name = $::os['family'] ? {
