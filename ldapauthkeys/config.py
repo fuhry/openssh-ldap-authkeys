@@ -12,6 +12,7 @@ default_config = {
     'ldap': {
         'use_dns_srv': False,
         'srv_discovery_domain': '',
+        'randomize_addresses': True,
         'filters': {
             'user': '(&(objectClass=posixAccount)(sshPublicKey=*))',
             'group': '(objectClass=posixGroup)'

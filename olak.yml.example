@@ -3,6 +3,7 @@ ldap:
   default_realm: EXAMPLE.COM
   use_dns_srv: true
   server_uri: ldaps://ldap.example.com/
+  randomize_addresses: true
   authdn: "cn=openssh,ou=Service Accounts,dc=example,dc=com"
   authpw: example123
   timeout: 15

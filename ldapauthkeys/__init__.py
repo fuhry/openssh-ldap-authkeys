@@ -1,3 +1,4 @@
+import random as insecure_random
 import traceback
 
 from ldapauthkeys.config import *
@@ -90,12 +91,18 @@ def olak_main(argv):
                 config['ldap']['server_uri']
             ]
 
+        if config['ldap']['randomize_addresses'] and len(ldap_server_addresses) > 1:
+            insecure_random.shuffle(ldap_server_addresses)
+
         # Go down the list of servers and try to connect
         connect_errors = {}
         connect_succeeded = False
 
         for addr in ldap_server_addresses:
             try:
+                get_logger('ldap').info(
+                    f'attempting to connect to ldap server: {addr}'
+                )
                 ldap = connect_to_ldap(config,
                     addr,
                     config['ldap']['authdn'],
@@ -103,6 +110,7 @@ def olak_main(argv):
                     config['ldap']['timeout'])
 
                 connect_succeeded = True
+                break
             except Exception as e:
                 connect_errors[addr] = e
 

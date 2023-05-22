@@ -109,6 +109,12 @@ Domain name under which to perform service discovery, if different from the base
 Defaults to a dynamic value generated from the basedn: a basedn of `dc=example,dc=com` will default to the use of
 `example.com` for this option. If overridden, the default discovery domain is not used.
 
+### `ldap.randomize_addresses` _(boolean)_
+
+If this is `true` and multiple LDAP servers are discovered, the list of servers is randomized using `random.shuffle` before any connections are attempted. If your DNS service returns multiple LDAP servers in a consistent order, changing this to `false` risks uneven load distribution between individual LDAP servers. Most deployments should leave this set to `true` (the default).
+
+_Default: true_
+
 ### `ldap.server_uri` _(string)_
 
 *Required* if `ldap.use_dns_srv` is `false`.
