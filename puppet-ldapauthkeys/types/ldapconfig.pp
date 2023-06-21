@@ -3,6 +3,7 @@ type Ldapauthkeys::Ldapconfig = Struct[{
 	use_dns_srv => Boolean,
 	srv_discovery_domain => Optional[String],
 	server_uri => Optional[String],
+	randomize_addresses => Optional[Boolean],
 	default_realm => Optional[String],
 	authdn => Optional[String],
 	authpw => Optional[String],
